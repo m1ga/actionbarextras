@@ -8,16 +8,14 @@ import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.titanium.util.TiUIHelper;
-
 import android.os.Message;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
 
-@Kroll.proxy(creatableInModule=ActionbarextrasModule.class, propertyAccessors="activeItem")
+@Kroll.proxy(creatableInModule=ActionbarextrasModule.class)
 public class DropdownProxy extends KrollProxy implements KrollProxyListener  {
 	
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
@@ -48,7 +46,7 @@ public class DropdownProxy extends KrollProxy implements KrollProxyListener  {
 	
 	/**
 	 * message handler
-	 * @param message
+	 * @param msg
 	 */
 	@Override
 	public boolean handleMessage(Message msg) {
