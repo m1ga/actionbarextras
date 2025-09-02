@@ -20,7 +20,6 @@
  */
 package com.alcoapps.actionbarextras;
 
-import static java.lang.String.valueOf;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;

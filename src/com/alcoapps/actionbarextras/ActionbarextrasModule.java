@@ -2,6 +2,7 @@ package com.alcoapps.actionbarextras;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Objects;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
@@ -19,11 +20,11 @@ import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiDrawableReference;
-
 import ti.modules.titanium.ui.android.SearchViewProxy;
 import android.content.res.Resources;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.TypedArray;
 import android.graphics.drawable.BitmapDrawable;
@@ -33,10 +34,10 @@ import android.graphics.drawable.Drawable;
 import android.graphics.PorterDuff;
 import android.graphics.Bitmap;
 import android.os.Message;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.ShareActionProvider;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.ShareActionProvider;
+import androidx.appcompat.content.res.*;
+import androidx.core.view.MenuItemCompat;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.AbsoluteSizeSpan;
@@ -54,8 +55,9 @@ import android.os.Build;
 import android.view.ViewConfiguration;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 
+/** @noinspection JavadocReference*/
 @Kroll.module(name = "Actionbarextras", id = "com.alcoapps.actionbarextras")
 public class ActionbarextrasModule extends KrollModule {
 
@@ -100,31 +102,20 @@ public class ActionbarextrasModule extends KrollModule {
 	public ActionbarextrasModule() {
 		super();
 	}
-	
-	@Kroll.onAppCreate
-	public static void onAppCreate(TiApplication app) {
-		// hack taken from:
-		// http://stackoverflow.com/questions/9286822/how-to-force-use-of-overflow-menu-on-devices-with-menu-button
-		try {
-			ViewConfiguration config = ViewConfiguration.get(app);
-			java.lang.reflect.Field menuKeyField = ViewConfiguration.class
-					.getDeclaredField("sHasPermanentMenuKey");
-			if (menuKeyField != null) {
-				menuKeyField.setAccessible(true);
-				menuKeyField.setBoolean(config, false);
-			}
-		} catch (Exception ex) {
-			// Ignore
-		}
+
+	@Kroll.method
+	public boolean hasPermanentMenuKey() {
+		return ViewConfiguration.get(TiApplication.getInstance()).hasPermanentMenuKey();
 	}
 
 	@Kroll.getProperty @Kroll.method
 	public String getTitle()
 	{
 		ActionBar actionBar = getActionBar();
-		if (actionBar == null) {
+		if (actionBar == null || actionBar.getTitle() == null) {
 			return "";
 		}
+
 		return actionBar.getTitle().toString();
 	}
 	
@@ -143,24 +134,18 @@ public class ActionbarextrasModule extends KrollModule {
 		}
 
 		try {
-			ActionBar actionBar = activity.getSupportActionBar();
-			return actionBar;
+            return activity.getSupportActionBar();
 		} catch (NullPointerException e) {
 			Log.e(TAG, "ActionBar is null (not found)");
 			return null;
 		}
-
 	}
 
 	private IconDrawable getDrawableFromFont(HashMap args) {
 		Typeface iconFontTypeface = TiUIHelper.toTypeface(TiApplication.getInstance(), (String) args.get(TiC.PROPERTY_FONTFAMILY));
 		return new IconDrawable(TiApplication.getInstance(), (String) args.get(TiC.PROPERTY_ICON), iconFontTypeface).actionBarSize().color(TiConvert.toColor((String) args.get(TiC.PROPERTY_COLOR)));
 	}
-	
-	/**
-	 * message handler
-	 * @param message
-	 */
+
 	@Override
 	public boolean handleMessage(Message msg) {
 		switch (msg.what) {
@@ -269,10 +254,9 @@ public class ActionbarextrasModule extends KrollModule {
 		}
 
 	}
-	
+
 	/**
 	 * Sets Actionbar title
-	 * @param obj
 	 */
 	private void handleSetTitle(Object obj){
 		ActionBar actionBar = getActionBar();
@@ -305,7 +289,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Actionbar subtitle
-	 * @param obj
 	 */
 	private void handleSetSubtitle(Object obj){
 		ActionBar actionBar = getActionBar();
@@ -343,7 +326,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Actionbar background color
-	 * @param obj
 	 */
 	private void handleSetBackgroundColor(String color){
 		ActionBar actionBar = getActionBar();
@@ -357,7 +339,6 @@ public class ActionbarextrasModule extends KrollModule {
 
 	/**
 	 * Sets StatusbarColor for andoid 5.x / materialDesign
-	 * @param obj
 	 */
 	private void handleSetStatusbarColor(String color){
 
@@ -381,7 +362,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets NavigationBarColor for Android 5.x / materialDesign
-	 * @param obj
 	 */
 	private void handleSetNavigationBarColor(String color){
 
@@ -405,8 +385,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Actionbar title font
-	 * @param obj
-	 */
+     */
 	private void handleSetTitleFont(Object font){
 		TiApplication appContext = TiApplication.getInstance();
 		ActionBar actionBar = getActionBar();
@@ -443,7 +422,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Actionbar subtitle font
-	 * @param obj
 	 */
 	private void handleSetSubtitleFont(Object font){
 		TiApplication appContext = TiApplication.getInstance();
@@ -483,7 +461,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Actionbar title color
-	 * @param obj
 	 */
 	private void handleSetTitleColor(String color){
 		
@@ -514,7 +491,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Actionbar subtitle color
-	 * @param obj
 	 */
 	private void handleSetSubtitleColor(String color){
 		
@@ -547,7 +523,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Disables or enables Actionbar icon
-	 * @param obj
 	 */
 	private void handleDisableIcon(Boolean disabled){
 		ActionBar actionBar = getActionBar();
@@ -579,7 +554,6 @@ public class ActionbarextrasModule extends KrollModule {
 
 	/**
 	 * Sets the homeAsUp icon
-	 * @param icon
 	 */
 	private void handleSetHomeAsUpIcon(Object obj) {
 		ActionBar actionBar = getActionBar();
@@ -606,7 +580,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set whether to include the application home affordance in the action bar.
-	 * @param icon
 	 */
 	private void handleDisplayShowHomeEnabled(Boolean showHome){
 		ActionBar actionBar = getActionBar();
@@ -620,7 +593,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set whether an activity title/subtitle should be displayed.
-	 * @param icon
 	 */
 	private void handleDisplayShowTitleEnabled(Boolean showTitle){
 		ActionBar actionBar = getActionBar();
@@ -634,8 +606,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set whether to display the activity logo rather than the activity icon.
-	 * @param icon
-	 */
+     */
 	private void handleDisplayUseLogoEnabled(Boolean useLogo){
 		ActionBar actionBar = getActionBar();
 		
@@ -648,7 +619,6 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets the logo with a custom icon font
-	 * @param logo
 	 */
 	private void handleSetLogo(Object obj){
 		HashMap args;
@@ -671,8 +641,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets a custom icon font for a given menu
-	 * @param logo
-	 */
+     */
 	private void handleSetMenuItemIcon(Object obj){
 		HashMap args;
 		
@@ -740,8 +709,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets the actionbar's main custom image.
-	 * @param obj
-	 */
+     */
 	private void handleSetActionbarImage(Object obj){
 		HashMap args;
 		Object image;
@@ -857,8 +825,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Disables the actionbar's main custom image.
-	 * @param obj
-	 */
+     */
 	private void handleDisableActionbarImage(){
 		
 		ActionBar actionBar = getActionBar();
@@ -1090,8 +1057,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Sets Up icon color
-	 * @param obj
-	 */
+     */
 	private void handleSetUpColor(String color){
 		
 		ActionBar actionBar = getActionBar();
@@ -1101,7 +1067,7 @@ public class ActionbarextrasModule extends KrollModule {
 			AppCompatActivity _activity = (AppCompatActivity) appContext.getCurrentActivity();
 
 			final int res_id = TiRHelper.getResource("drawable.abc_ic_ab_back_material", true);
-			final Drawable upArrow = ContextCompat.getDrawable(_activity, res_id);
+			final Drawable upArrow = AppCompatResources.getDrawable(_activity, res_id);
 
 			upArrow.setColorFilter(TiConvert.toColor(color), PorterDuff.Mode.SRC_ATOP);
 			actionBar.setHomeAsUpIndicator(upArrow);
@@ -1199,9 +1165,8 @@ public class ActionbarextrasModule extends KrollModule {
 	 *     color: "#f00",
 	 *     font: "MyFont.otf"
 	 * })
-	 * 
-	 * @param obj
-	 */
+	 *
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setTitle(Object obj) {
 		
@@ -1212,10 +1177,10 @@ public class ActionbarextrasModule extends KrollModule {
 		}else if(obj instanceof HashMap){
 			@SuppressWarnings("unchecked")
 			HashMap<String, String> d = (HashMap<String, String>) obj;
-			title = (String) d.get(TiC.PROPERTY_TEXT);
+			title = d.get(TiC.PROPERTY_TEXT);
 			
 			if (d.containsKey(TiC.PROPERTY_COLOR)){
-				setTitleColor((String) d.get(TiC.PROPERTY_COLOR));
+				setTitleColor(d.get(TiC.PROPERTY_COLOR));
 			}
 			
 			if (d.containsKey(TiC.PROPERTY_FONT)){
@@ -1237,9 +1202,8 @@ public class ActionbarextrasModule extends KrollModule {
 	 *     color: "#f00",
 	 *     font: "MyFont.otf"
 	 * })
-	 * 
-	 * @param obj
-	 */
+	 *
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setSubtitle(Object obj) {
 		
@@ -1250,10 +1214,10 @@ public class ActionbarextrasModule extends KrollModule {
 		}else if(obj instanceof HashMap){
 			@SuppressWarnings("unchecked")
 			HashMap<String, String> d = (HashMap<String, String>) obj;
-			subtitle = (String) d.get(TiC.PROPERTY_TEXT);
+			subtitle = d.get(TiC.PROPERTY_TEXT);
 			
 			if (d.containsKey(TiC.PROPERTY_COLOR)){
-				setSubtitleColor((String) d.get(TiC.PROPERTY_COLOR));
+				setSubtitleColor(d.get(TiC.PROPERTY_COLOR));
 			}
 			
 			if (d.containsKey(TiC.PROPERTY_FONT)){
@@ -1271,8 +1235,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set the Actionbar background color
-	 * @param color
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setBackgroundColor(String color) {
 		Message message = getMainHandler().obtainMessage(MSG_BACKGROUND_COLOR, color);
@@ -1281,8 +1244,7 @@ public class ActionbarextrasModule extends KrollModule {
 
 	/**
 	 * Set the Statusbar background color
-	 * @param color
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setStatusbarColor(String color) {
 		Message message = getMainHandler().obtainMessage(MSG_STATUSBAR_COLOR, color);
@@ -1291,8 +1253,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set the Navigationbar background color
-	 * @param color
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setNavigationbarColor(String color) {
 		Message message = getMainHandler().obtainMessage(MSG_NAVIGATIONBAR_COLOR, color);
@@ -1301,8 +1262,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set title and subtitle font at once
-	 * @param value
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setFont(Object value) {
 		setTitleFont(value);
@@ -1311,8 +1271,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * set title font
-	 * @param value
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setTitleFont(Object obj) {
 		Message message = getMainHandler().obtainMessage(MSG_TITLE_FONT, obj);
@@ -1321,8 +1280,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * set subtitle font
-	 * @param value
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setSubtitleFont(Object obj) {
 		Message message = getMainHandler().obtainMessage(MSG_SUBTITLE_FONT, obj);
@@ -1331,8 +1289,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * Set title and subtitle color at once
-	 * @param value
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setColor(String color) {
 		setTitleColor(color);
@@ -1341,8 +1298,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * set title color
-	 * @param color
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setTitleColor(String color){
 		Message message = getMainHandler().obtainMessage(MSG_TITLE_COLOR, color);
@@ -1351,8 +1307,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * set subtitle color
-	 * @param color
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setSubtitleColor(String color){
 		Message message = getMainHandler().obtainMessage(MSG_SUBTITLE_COLOR, color);
@@ -1361,8 +1316,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * disables or enables the icon
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setDisableIcon(@Kroll.argument(optional = true) Boolean arg) {
 		
@@ -1378,8 +1332,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * sets the homeAsUp icon
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setHomeAsUpIcon(Object arg) {
 		Message message = getMainHandler().obtainMessage(MSG_HOMEASUP_ICON, arg);
@@ -1434,8 +1387,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * sets a reference to a window
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setWindow(Object arg) {
 		Message message = getMainHandler().obtainMessage(MSG_WINDOW, arg);
@@ -1444,8 +1396,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * sets options for the searchview that was passed
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setSearchView(Object arg) {
 		Message message = getMainHandler().obtainMessage(MSG_SEARCHVIEW, arg);
@@ -1496,8 +1447,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * sets the Actionbar elevation
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setElevation(Object arg) {
 		Message message = getMainHandler().obtainMessage(MSG_ELEVATION, arg);
@@ -1506,8 +1456,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * sets the Actionbar hideOffset
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setHideOffset(Object arg) {
 		Message message = getMainHandler().obtainMessage(MSG_HIDE_OFFSET, arg);
@@ -1516,8 +1465,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * set up icon color
-	 * @param color
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setUpColor(String color){
 		Message message = getMainHandler().obtainMessage(MSG_UPICON_COLOR, color);
@@ -1526,8 +1474,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * exposes setDisplayShowHomeEnabled
-	 * @param boolean
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setDisplayShowHomeEnabled(boolean showHome){
 		Message message = getMainHandler().obtainMessage(MSG_DISPLAY_HOME, showHome);
@@ -1536,8 +1483,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * exposes setDisplayShowTitleEnabled
-	 * @param boolean
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setDisplayShowTitleEnabled(boolean showTitle){
 		Message message = getMainHandler().obtainMessage(MSG_DISPLAY_TITLE, showTitle);
@@ -1546,8 +1492,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * exposes setDisplayUseLogoEnabled
-	 * @param boolean
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setDisplayUseLogoEnabled(boolean useLogo){
 		Message message = getMainHandler().obtainMessage(MSG_DISPLAY_USELOGO, useLogo);
@@ -1556,8 +1501,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * exposes sets the Toolbar top padding
-	 * @param arg
-	 */
+     */
 	@Kroll.method @Kroll.setProperty
 	public void setToolbarTopPadding(Object arg) {
 		Message message = getMainHandler().obtainMessage(MSG_TOOLBAR_TOP_PADDING, arg);
@@ -1566,8 +1510,7 @@ public class ActionbarextrasModule extends KrollModule {
 	
 	/**
 	 * add share action provider to Actionbar
-	 * @param args
-	 */
+     */
 	@Kroll.method
 	public void addShareAction(KrollDict args) {
 		
@@ -1578,22 +1521,28 @@ public class ActionbarextrasModule extends KrollModule {
 		IntentProxy intent_proxy = (IntentProxy) args.get(TiC.PROPERTY_INTENT);
 		String title = "Share";
 		int show_as_action = MenuItem.SHOW_AS_ACTION_IF_ROOM;
-		Menu menu = menu_proxy.getMenu();
-
-		if (args.containsKey(TiC.PROPERTY_TITLE)) {
-			title = TiConvert.toString(args, TiC.PROPERTY_TITLE);
-		}
-
-		if (args.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
-			show_as_action = TiConvert.toInt(args, TiC.PROPERTY_SHOW_AS_ACTION);
-		}
-		
-		if (args.containsKey("menuItem")) {
-			MenuItemProxy mip = (MenuItemProxy) args.get("menuItem");
-			item = menu.findItem( mip.getItemId() );
-		}
 
 		try {
+            Menu menu = null;
+            if (menu_proxy != null) {
+                menu = menu_proxy.getMenu();
+            }
+
+            if (args.containsKey(TiC.PROPERTY_TITLE)) {
+				title = TiConvert.toString(args, TiC.PROPERTY_TITLE);
+			}
+
+			if (args.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
+				show_as_action = TiConvert.toInt(args, TiC.PROPERTY_SHOW_AS_ACTION);
+			}
+
+			if (args.containsKey("menuItem")) {
+				MenuItemProxy mip = (MenuItemProxy) args.get("menuItem");
+                if (menu != null && mip != null) {
+					item = menu.findItem( mip.getItemId() );
+                }
+            }
+
 			TiApplication appContext = TiApplication.getInstance();
 			AppCompatActivity activity = (AppCompatActivity) appContext.getCurrentActivity();
 
